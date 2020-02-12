@@ -9,13 +9,13 @@ const exec = require('child_process').exec;
 
 // ENVIRONMENT VARIABLES
 // Mongo
-const dbName = process.env.MONGO_DB_NAME;
+//const dbName = process.env.MONGO_DB_NAME;
 const username = process.env.MONGO_USER;
 const password = process.env.MONGO_PW;
 const authDB = process.env.MONGO_AUTH_DB || 'admin';
 const port = process.env.MONGO_PORT || '27017';
-const replicaSet = process.env.MONGO_REPLICA_SET;
-const clusterShard = process.env.MONGO_CLUSTER_SHARD;
+//const replicaSet = process.env.MONGO_REPLICA_SET;
+//const clusterShard = process.env.MONGO_CLUSTER_SHARD;
 // S3
 const bucketName = process.env.S3_BUCKET;
 const storageClass = process.env.S3_STORAGE_CLASS || "STANDARD";
@@ -24,12 +24,15 @@ const s3bucket = new AWS.S3({ params: { Bucket: bucketName, StorageClass: storag
 const dateFormat = process.env.DATE_FORMAT || 'YYYYMMDD_HHmmss';
 
 module.exports.handler = function(event, context, cb) {
-
+  
+  let dbName = event.MONGO_DB_NAME;
   console.log(`Backup of database '${dbName}' to S3 bucket '${bucketName}' is starting`);
   process.env['PATH'] = process.env['PATH'] + ':' + process.env['LAMBDA_TASK_ROOT'];
   let fileName = dbName + '_' + dayjs().format(dateFormat);
   let folderName = `/tmp/${fileName}/`;
   let filePath = `/tmp/${fileName}.zip`;
+  let replicaSet = event.MONGO_REPLICA_SET;
+  let clusterShard = event.MONGO_CLUSTER_SHARD;
 
   exec(`mongodump -d ${dbName} -u ${username} -p ${password} -o ${folderName} --authenticationDatabase ${authDB} --ssl --port ${port} -h "${replicaSet}/${clusterShard}"`, (error, stdout, stderr) => {
 
